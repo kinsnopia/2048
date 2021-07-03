@@ -19,9 +19,7 @@ class TestGrid(private val size: Int) {
             }
         }
         private fun clearZeroes(line: List<Int>) = line.filter{cell: Int -> cell > 0}
-//        private fun clearZeroes() = gameField.forEach{row -> row.filter{cell: Int -> cell > 0}}
         private fun merge(line: List<Int>, isReversed: Boolean): List<Int> {
-            if (line.isNotEmpty()) {
                 val mergedLine = (if (isReversed) line.reversed() else line).toMutableList()
                 for (i in 1 until mergedLine.size) {
                     if (mergedLine[i] == mergedLine[i - 1]) {
@@ -30,21 +28,19 @@ class TestGrid(private val size: Int) {
                     }
                 }
                 return mergedLine.filter { cell: Int -> cell > 0 }
-            }
-            return line
         }
         private fun fillZeroes(line: List<Int>, isReversed: Boolean): List<Int> {
-            when {
-                line.isEmpty() -> return List(size){0}
-                line.size == size -> return line
+            return when (line.size) {
+                size -> {
+                    line
+                }
                 else -> {
-                    val baseLine: MutableList<Int> = MutableList(size) { 0 }
-                    if(line.size == size) return line
+                    val baseLine: MutableList<Int> = MutableList(size) {0}
                     val shift: Int = if (isReversed) size - line.size else 0
                     for (i in line.indices) {
                         baseLine[i + shift] = line[i]
                     }
-                    return baseLine
+                    baseLine
                 }
             }
         }
@@ -90,87 +86,57 @@ class TestGrid(private val size: Int) {
         fun moveLeft(){
             var count = 0
             for (i in 0 until size){
-                val line = clearZeroes(gameField[i])
+                var line = clearZeroes(gameField[i])
                 if (line.isNotEmpty()){
-
+                    line = fillZeroes(merge(line, false), false)
+                    if(gameField[i] == line.toMutableList()) count++
+                    else gameField[i] = line.toMutableList()
                 }
             }
-            //First it clears row from zeroes, merges values, then fills zeroes again
-//            gameField.forEach{row -> fillZeroes(merge(clearZeroes(row), false), false)}
-//            gameField.forEach{row -> clearZeroes(row)}
-//            gameField.forEach{row -> merge(row, false)}
-//            gameField.forEach{row -> fillZeroes(row, false)}
-
-//            for(i in 0 until size){
-//                if(clearZeroes(gameField[i]).isNotEmpty()) {
-//                    val n: IntProgression = 1 until clearZeroes(gameField[i]).size
-//                    val list = merge(clearZeroes(gameField[i]), n)
-//                    if (list == gameField[i]) count++
-//                    for (j in gameField[i].indices) gameField[i][j] = 0
-//                    for (j in list.indices) gameField[i][j] = list[j]
-//                }
-//            }
-//            if (count < 4) putRandomValues(1)
-//            checkGameStatus()
+            if(count < size) putRandomValues(1)
+            if(count == size) checkGameStatus()
         }
         fun moveRight(){
             var count = 0
-            gameField.forEach{row -> fillZeroes(merge(clearZeroes(row), true), true)}
-
-//            for(i in 0 until size){
-////            val list = clearZeros((gameField[i]))
-//                val n: IntProgression = clearZeroes(gameField[i]).size - 1 downTo 1
-//                val list = merge(clearZeroes((gameField[i])), n)
-//                if (list.size == size) count++
-//                val sizeDifference = size - list.size //Поправка на то, что слева направо
-//                for (j in gameField[i].indices) gameField[i][j] = 0
-//                for (j in list.indices) gameField[i][j + sizeDifference] = list[j]
-//            }
-//            if (count < 4) putRandomValues(1)
-//            checkGameStatus()
+            for (i in 0 until size){
+                var line = clearZeroes(gameField[i])
+                if (line.isNotEmpty()){
+                    line = fillZeroes(merge(line, true), true)
+                    if(gameField[i] == line.toMutableList()) count++
+                    else gameField[i] = line.toMutableList()
+                }
+            }
+            if(count < size) putRandomValues(1)
+            if(count == size) checkGameStatus()
         }
         fun moveUp() {
             var count = 0
             val field = inverseGameField(gameField)
-            field.forEach{row -> fillZeroes(merge(clearZeroes(row), false), false)}
+            for (i in 0 until size){
+                var line = clearZeroes(field[i])
+                if (line.isNotEmpty()){
+                    line = fillZeroes(merge(line, false), false)
+                    if(field[i] == line.toMutableList()) count++
+                    else field[i] = line.toMutableList()
+                }
+            }
             gameField = inverseGameField(field)
-
-//            for (i in 0 until size) {
-//                val list: MutableList<Int> = mutableListOf()
-//                for (j in 0 until size) {
-//                    list.add(gameField[j][i])
-//                }
-//                println(clearZeroes(list).isNotEmpty())
-//                if(clearZeroes(list).isNotEmpty()) {
-//                    val n: IntProgression = 1 until clearZeroes(list).size
-//                    println(n)
-//                    val list2 = merge(clearZeroes(list), n)
-//                    if (list2.size == size) count++
-//                    for (j in 0 until size) gameField[j][i] = 0
-//                    for (j in list2.indices) gameField[j][i] = list2[j]
-//                }
-//            }
-//            if (count < 4) putRandomValues(1)
-            checkGameStatus()
+            if(count < size) putRandomValues(1)
+            if(count == size) checkGameStatus()
         }
         fun moveDown(){
             var count = 0
             val field = inverseGameField(gameField)
-            field.forEach{row -> fillZeroes(merge(clearZeroes(row), true), true)}
+            for (i in 0 until size){
+                var line = clearZeroes(field[i])
+                if (line.isNotEmpty()){
+                    line = fillZeroes(merge(line, true), true)
+                    if(field[i] == line.toMutableList()) count++
+                    else field[i] = line.toMutableList()
+                }
+            }
             gameField = inverseGameField(field)
-//            for(i in 0 until size){
-//                val list: MutableList<Int> = mutableListOf()
-//                for(j in 0 until size){
-//                    list.add(gameField[j][i])
-//                }
-//                val n: IntProgression = clearZeroes(list).size -1 downTo 1
-//                val list2 = merge(clearZeroes(list), n)
-//                if (list2.size == size) count++
-//                val sizeDifference = size - list2.size
-//                for (j in 0 until size) gameField[j][i] = 0
-//                for (j in list2.indices) gameField[j + sizeDifference][i] = list2[j]
-//            }
-//            if (count < 4) putRandomValues(1)
-//            checkGameStatus()
+            if(count < size) putRandomValues(1)
+            if(count == size) checkGameStatus()
         }
 }
