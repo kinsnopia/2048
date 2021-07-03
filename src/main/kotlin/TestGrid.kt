@@ -19,14 +19,16 @@ class TestGrid(private val size: Int) {
         }
         private fun clearZeroes(line: List<Int>) = line.filter{cell: Int -> cell > 0}
         private fun merge(line: List<Int>, isReversed: Boolean): List<Int> {
-                val mergedLine = (if (isReversed) line.reversed() else line).toMutableList()
-                for (i in 1 until mergedLine.size) {
-                    if (mergedLine[i] == mergedLine[i - 1]) {
-                        mergedLine[i] = 0
-                        mergedLine[i - 1] *= 2
-                    }
+//            val mergedLine = (if (isReversed) line.reversed() else line).toMutableList()
+            val mergedLine = line.toMutableList()
+            val shift = if(isReversed) 1 else 0
+            for (i in 1 - shift until mergedLine.size - shift) {
+                if (mergedLine[i] == mergedLine[i - 1 + 2 * shift]) {
+                    mergedLine[i] = 0
+                    mergedLine[i - 1 + 2 * shift] *= 2
                 }
-                return mergedLine.filter { cell: Int -> cell > 0 }
+            }
+            return mergedLine.filter { cell: Int -> cell > 0 }
         }
         private fun fillZeroes(line: List<Int>, isReversed: Boolean): List<Int> {
             return when (line.size) {
@@ -76,7 +78,7 @@ class TestGrid(private val size: Int) {
             var bufferValue = 0
             gameField.forEach{row ->
                 row.forEach{element -> if(bufferValue < element) bufferValue = element} }
-            var width = bufferValue.toString().length + 1
+            val width = bufferValue.toString().length + 1
             gameField.forEach{row ->
                 row.forEach{element -> print("%${width}d".format(element))}//" $element ")}
                 println()
