@@ -95,6 +95,8 @@ class TestGrid(private val size: Int) {
                     if(gameField[i] == line.toMutableList()) count++
                     else gameField[i] = line.toMutableList()
                 }
+                else count++
+
             }
             if(count < size) putRandomValues(1)
 //            if(count == size)
@@ -109,6 +111,8 @@ class TestGrid(private val size: Int) {
                     if(gameField[i] == line.toMutableList()) count++
                     else gameField[i] = line.toMutableList()
                 }
+                else count++
+
             }
             if(count < size) putRandomValues(1)
 //            if(count == size)
@@ -124,6 +128,7 @@ class TestGrid(private val size: Int) {
                     if(field[i] == line.toMutableList()) count++
                     else field[i] = line.toMutableList()
                 }
+                else count++
             }
             gameField = inverseField(field)
             if(count < size) putRandomValues(1)
@@ -140,6 +145,8 @@ class TestGrid(private val size: Int) {
                     if(field[i] == line.toMutableList()) count++
                     else field[i] = line.toMutableList()
                 }
+                else count++
+
             }
             gameField = inverseField(field)
             if(count < size) putRandomValues(1)
