@@ -1,9 +1,7 @@
 class TestGrid(private val size: Int) {
     var isGameOver: Boolean = false
     var isGameWon: Boolean = false
-//    private var moveCount: Int = 0
     private var score: Int = 0
-//    private var bestScore: Int = 0
     private var gameField = MutableList(size) { MutableList(size) { 0 } }
 
     private fun createRandomValue() = if ((1..5).random() < 5) 2 else 4
