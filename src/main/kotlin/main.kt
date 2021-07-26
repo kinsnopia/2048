@@ -1,35 +1,20 @@
-//fun grwid(size: Int){
-//    repeat(size) {
-//        repeat(size) {
-//            print(" 0 ")
-//        }
-//        println("0")
-//    }
-//}
-//fun oneLineFillWithZeros(size: Int, varargs: Int): List<Int> {
-//    repeat(size) {
-//a
-//    }
-//}
-private var board = TestGrid(0)
 fun main() {
-    val size: Int = 10
-    board = TestGrid(4)
+    val size = 10
+    val board = TestGrid(size)
     board.resetGameField()
+    println("Tvoy schyot: ${board.showScore()} \n")
     board.printGameField()
     while(!board.isGameOver){
         when(readLine()!!){
-            "w" -> board.moveUp()
-            "s" -> board.moveDown()
-            "a" -> board.moveLeft()
-            "d" -> board.moveRight()
+            "w" -> board.move("w")
+            "s" -> board.move("s")
+            "a" -> board.move("a")
+            "d" -> board.move("d")
         }
+        println("Tvoy schyot: ${board.showScore()} \n")
         board.printGameField()
     }
-    println("proebal pohodu")
+    if(board.isGameWon) println("krasava")
+    else println("proebal pohodu")
 
-//    board.moveUp()
-//    board.printGameField()
-//    board.moveDown()
-//    board.printGameField()
 }
