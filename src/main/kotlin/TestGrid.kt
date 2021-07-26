@@ -4,7 +4,6 @@ class TestGrid(private val size: Int) {
         private var score: Int = 0
         private var bestScore: Int = 0
         private var gameField = MutableList(size){MutableList(size) {0} }
-        private var testField = MutableList(size){MutableList(size) {0} }
 
         private fun createRandomValue() = if((1..5).random() < 5) 2 else 4
         private fun putRandomValues(times: Int){
@@ -20,14 +19,16 @@ class TestGrid(private val size: Int) {
         }
         private fun clearZeroes(line: List<Int>) = line.filter{cell: Int -> cell > 0}
         private fun merge(line: List<Int>, isReversed: Boolean): List<Int> {
-                val mergedLine = (if (isReversed) line.reversed() else line).toMutableList()
-                for (i in 1 until mergedLine.size) {
-                    if (mergedLine[i] == mergedLine[i - 1]) {
-                        mergedLine[i] = 0
-                        mergedLine[i - 1] *= 2
-                    }
+//            val mergedLine = (if (isReversed) line.reversed() else line).toMutableList()
+            val mergedLine = line.toMutableList()
+            val shift = if(isReversed) 1 else 0
+            for (i in 1 - shift until mergedLine.size - shift) {
+                if (mergedLine[i] == mergedLine[i - 1 + 2 * shift]) {
+                    mergedLine[i] = 0
+                    mergedLine[i - 1 + 2 * shift] *= 2
                 }
-                return mergedLine.filter { cell: Int -> cell > 0 }
+            }
+            return mergedLine.filter { cell: Int -> cell > 0 }
         }
         private fun fillZeroes(line: List<Int>, isReversed: Boolean): List<Int> {
             return when (line.size) {
@@ -44,44 +45,46 @@ class TestGrid(private val size: Int) {
                 }
             }
         }
-
-        private fun checkGameStatus() {
-//            val list = gameField
-//            val list2 = MutableList(size){MutableList(size){0}}
-//            var count = 0
-//            for(i in 0 until size){
-//                for(j in 0 until size){
-//                    list2[i][j] = gameField[j][i]
-//                }
-//                if(list[i].size == merge(list[i], list[i].indices).size) count ++
-//                if(list2[i].size == merge(list[i], list2[i].indices).size) count ++
-//            }
-//            if (count == 8) isGameOver = true
-//        var count = 0
-//        gameField.forEach{row -> row.forEach{element -> if(element != 0) count++}
-//        }
-//        if (count == size * size) isGameOver = true
+        private fun inverseField(field: List<List<Int>>): MutableList<MutableList<Int>> {
+            val inversedField = MutableList(size) { MutableList(size) { 0 } }
+            for (i in 0 until size) {
+                for (j in 0 until size) {
+                    inversedField[i][j] = field[j][i]
+                }
+            }
+            return inversedField
         }
+        private fun checkGameStatus(): Boolean {
+            val field = inverseField(gameField)
+            for (i in 0 until size) {
+                val line = clearZeroes(gameField[i])
+                val inversedLine = clearZeroes(field[i])
+                if (line.isEmpty() || inversedLine.isEmpty()) return false
+                if (line != fillZeroes(merge(line, false), false)) return false
+                if (line != fillZeroes(merge(line, true), true)) return false
+                if (inversedLine != fillZeroes(merge(inversedLine, false), false)) return false
+                if (inversedLine != fillZeroes(merge(inversedLine, true), true)) return false
+
+            }
+            return true
+        }
+
         fun resetGameField(){
             gameField.forEach {row -> for(i in row.indices) row[i] = 0}
             putRandomValues(2)
             isGameOver = false
         }
         fun printGameField(){
+            var bufferValue = 0
             gameField.forEach{row ->
-                row.forEach{element -> print(" $element ")}
+                row.forEach{element -> if(bufferValue < element) bufferValue = element} }
+            val width = bufferValue.toString().length + 1
+            gameField.forEach{row ->
+                row.forEach{element -> print("%${width}d".format(element))}//" $element ")}
                 println()
             }
             println()
-        }
-        private fun inverseGameField(field: List<List<Int>>): MutableList<MutableList<Int>>{
-            val inversedField = MutableList(size){MutableList(size) {0}}
-            for(i in 0 until size){
-                for(j in 0 until size){
-                    inversedField[i][j] = field[j][i]
-                }
-            }
-            return inversedField
+
         }
         fun moveLeft(){
             var count = 0
@@ -92,9 +95,12 @@ class TestGrid(private val size: Int) {
                     if(gameField[i] == line.toMutableList()) count++
                     else gameField[i] = line.toMutableList()
                 }
+                else count++
+
             }
             if(count < size) putRandomValues(1)
-            if(count == size) checkGameStatus()
+//            if(count == size)
+                isGameOver = checkGameStatus()
         }
         fun moveRight(){
             var count = 0
@@ -105,13 +111,16 @@ class TestGrid(private val size: Int) {
                     if(gameField[i] == line.toMutableList()) count++
                     else gameField[i] = line.toMutableList()
                 }
+                else count++
+
             }
             if(count < size) putRandomValues(1)
-            if(count == size) checkGameStatus()
+//            if(count == size)
+                isGameOver = checkGameStatus()
         }
         fun moveUp() {
             var count = 0
-            val field = inverseGameField(gameField)
+            val field = inverseField(gameField)
             for (i in 0 until size){
                 var line = clearZeroes(field[i])
                 if (line.isNotEmpty()){
@@ -119,14 +128,16 @@ class TestGrid(private val size: Int) {
                     if(field[i] == line.toMutableList()) count++
                     else field[i] = line.toMutableList()
                 }
+                else count++
             }
-            gameField = inverseGameField(field)
+            gameField = inverseField(field)
             if(count < size) putRandomValues(1)
-            if(count == size) checkGameStatus()
+//            if(count == size)
+                isGameOver = checkGameStatus()
         }
         fun moveDown(){
             var count = 0
-            val field = inverseGameField(gameField)
+            val field = inverseField(gameField)
             for (i in 0 until size){
                 var line = clearZeroes(field[i])
                 if (line.isNotEmpty()){
@@ -134,9 +145,12 @@ class TestGrid(private val size: Int) {
                     if(field[i] == line.toMutableList()) count++
                     else field[i] = line.toMutableList()
                 }
+                else count++
+
             }
-            gameField = inverseGameField(field)
+            gameField = inverseField(field)
             if(count < size) putRandomValues(1)
-            if(count == size) checkGameStatus()
+//            if(count == size)
+                isGameOver = checkGameStatus()
         }
 }

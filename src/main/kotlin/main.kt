@@ -8,7 +8,7 @@
 //}
 //fun oneLineFillWithZeros(size: Int, varargs: Int): List<Int> {
 //    repeat(size) {
-//
+//a
 //    }
 //}
 private var board = TestGrid(0)
