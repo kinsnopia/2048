@@ -19,33 +19,24 @@ class TestGrid(private val size: Int) {
 
     private fun clearZeroes(line: List<Int>) = line.filter{ cell: Int -> cell > 0 }
     private fun merge(line: List<Int>, isReversed: Boolean): List<Int> {
-        val mergedLine = line.toMutableList()
-        val shift = if (isReversed) 1 else 0
-        for (i in 1 - shift until mergedLine.size - shift) {
-            if (mergedLine[i] == mergedLine[i - 1 + 2 * shift]) {
-                mergedLine[i] = 0
-                mergedLine[i - 1 + 2 * shift] *= 2
-                countScore(mergedLine[i - 1 + 2 * shift])
+        val mergingLine = if (isReversed) line.reversed().toMutableList() else line.toMutableList()
+        for (i in 1 until mergingLine.size) {
+            if (mergingLine[i] == mergingLine[i - 1]) {
+                mergingLine[i] = 0
+                countScore(mergingLine[i - 1])
+                mergingLine[i - 1] *= 2
             }
         }
-        return mergedLine.filter { cell: Int -> cell > 0 }
+        val mergedLine = clearZeroes(mergingLine)
+        return if (isReversed) mergedLine.reversed() else mergedLine
     }
     private fun countScore(value: Int) {
         score += value
     }
     private fun fillZeroes(line: List<Int>, isReversed: Boolean): List<Int> {
-        return when (line.size) {
-            size -> {
-                line
-            }
-            else -> {
-                val baseLine: MutableList<Int> = MutableList(size) { 0 }
-                val shift: Int = if (isReversed) size - line.size else 0
-                for (i in line.indices) {
-                    baseLine[i + shift] = line[i]
-                }
-                baseLine
-            }
+        return when {
+            isReversed -> (line.reversed() + List(size - line.size) { 0 }).reversed()
+            else -> line + List(size - line.size) { 0 }
         }
     }
     private fun inverseField(field: List<List<Int>>): MutableList<MutableList<Int>> {

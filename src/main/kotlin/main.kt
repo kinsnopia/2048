@@ -1,5 +1,5 @@
 fun main() {
-    val size = 10
+    val size = 4
     val board = TestGrid(size)
     board.resetGameField()
     println("Tvoy schyot: ${board.showScore()} \n")
