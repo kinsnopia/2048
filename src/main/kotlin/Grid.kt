@@ -1,131 +1,114 @@
 class Grid(private val size: Int) {
-    var isGameOver: Boolean = false
-    private var moveCount: Int = 0
-    private var score: Int = 0
-    private var bestScore: Int = 0
-    private var gameField = MutableList(size){MutableList(size) {0} }
+    private var _isGameOver = false
+    private var _isGameWon = false
+    private var emptySlots = true
+    private var _score = 0
+    val score get() = _score
+    val isGameOver get() = _isGameOver
+    val isGameWon get() = _isGameWon
 
-    private fun createRandomValue() = if((1..5).random() < 5) 2 else 4
-    private fun putRandomValues(times: Int){
+    private var gameField = MutableList(size) { MutableList(size) { 0 } }
+    private val randomValue get() = if ((1..5).random() < 5) 2 else 4
+
+    private fun putRandomValues(times: Int) {
+        //Every move ends with the new value inserted into gameField
+        //The method creates random coordinates and if the cell in these coordinate is empty
+        //it will put randomValue there
         var count = 0
-        while(count < times){
-            val x = (0 until size).random()
-            val y = (0 until size).random()
-            if(gameField[x][y] == 0) {
-                gameField[x][y] = createRandomValue()
+        while (count < times) {
+            val (x, y) = Pair((0 until size).random(), (0 until size).random())
+            if (gameField[x][y] == 0) {
+                gameField[x][y] = randomValue
                 count++
             }
         }
     }
-    private fun clearZeroes(columns: MutableList<Int>) = columns.filter {cell: Int -> cell > 0 }
 
-    private fun merge(list: List<Int>, n: IntProgression): List<Int>{
-        val mergedList = list.toMutableList()
-        if (list.size > 1){
-            for(i in n){
-                if(mergedList[i] == mergedList[i - 1]) {
-                    mergedList[i] = 0
-                    mergedList[i - 1] *= 2
-                    //TODO надо бы score сюда запилить
-                    //Здесь и происходит объединение ячеек
+    private fun checkAvailableMoves(field: MutableList<MutableList<Int>>): Boolean {
+        if (field.any { row -> row.any { it == 0 } }) {
+            //If at least one cell is empty in the gameField
+            //it means that there are definitely available moves
+            emptySlots = true
+            return true
+        }
+        else {
+            //However, lack of empty cells doesn't necessarily mean no available moves.
+            //Therefore, it must also check, whether there are any mergeable cells
+            emptySlots = false
+            repeat(2) {
+                //This part is performed two times, one while gameField isn't transposed
+                //and another where it is
+                field.forEach { it.zipWithNext { first, second -> if (first == second) return true } }
+                //This part basically zips neighboring cells together. By definition, cell is considered
+                //mergeable if it has either horizontal or vertical neighbor with the same value (thus, transposing)
+                //it takes at least one mergeable for available move to exist.
+                field.transpose()
+            }
+        }
+        return false
+    }
+
+    private fun MutableList<Int>.merge(isReversed: Boolean, length: Int) {
+            this.removeAll { it == 0 }
+            if (isReversed) this.reverse()
+            for (i in 1 until this.size) {
+                if (this[i] == this[i - 1]) {
+                    this[i - 1] *= 2
+                    _score += this[i - 1]
+                    this.removeAt(i)
+
+                    this.add(0)
                 }
             }
-        }
-        return mergedList.filter {cell: Int -> cell > 0}
+            this.removeAll { it == 0 }
+            this.addAll(List(length - size) { 0 })
+            if (isReversed) this.reverse()
     }
-    private fun checkGameStatus() {
-        val list = gameField
-        val list2 = MutableList(size){MutableList(size){0}}
-        var count = 0
-        for(i in 0 until size){
-            for(j in 0 until size){
-                list2[i][j] = gameField[j][i]
+
+    private fun MutableList<MutableList<Int>>.transpose() {
+        //The need for transposing gameField arises from the fact that
+        //the map is not a 2-D list but rather list of lists.
+        //Any operation on a row is an operation on a list,
+        //however that doesn't translate to columns, since the column is collection
+        //of values at certain position in a list from every list in gameField.
+        //So, in order to utilize the merge method on a column the same way as on a row without complicating it,
+        //this method basically flips gameField on a side, converting columns into rows(definition of transposing)
+        val temp = MutableList(size) { MutableList(size) { 0 } }
+        for (i in 0 until size) {
+            for (j in 0 until size) {
+                temp[i][j] = this[i][j]
             }
-            if(list[i].size == merge(list[i], list[i].indices).size) count ++
-            if(list2[i].size == merge(list[i], list2[i].indices).size) count ++
         }
-        if (count == 8) isGameOver = true
-//        var count = 0
-//        gameField.forEach{row -> row.forEach{element -> if(element != 0) count++}
-//        }
-//        if (count == size * size) isGameOver = true
+        for (i in 0 until size) {
+            for (j in 0 until size) {
+                this[j][i] = temp[i][j]
+            }
+        }
     }
-    fun resetGameField(){
-        gameField.forEach {row -> for(i in row.indices) row[i] = 0}
+
+    fun resetGameField() {
+        gameField.forEach { it.map { List(size) { 0 } } }
         putRandomValues(2)
-        isGameOver = false
+        emptySlots = true
+        _isGameOver = false
+        _isGameWon = false
     }
-    fun printGameField(){
-        gameField.forEach{row ->
-            row.forEach{element -> print(" $element ")}
-            println()
-        }
+
+    fun printGameField() {
+        //val width is used to determine the largest number in the grid to correctly print grid without shifting.
+        val width = gameField.flatten().maxByOrNull { it }.toString().length + 1
+        gameField.forEach { row -> row.forEach { print("%${width}d".format(it)) }; println() }
         println()
     }
 
-    fun moveLeft(){
-        var count = 0
-        for(i in 0 until size){
-            if(clearZeroes(gameField[i]).isNotEmpty()) {
-                val n: IntProgression = 1 until clearZeroes(gameField[i]).size
-                val list = merge(clearZeroes(gameField[i]), n)
-                if (list == gameField[i]) count++
-                for (j in gameField[i].indices) gameField[i][j] = 0
-                for (j in list.indices) gameField[i][j] = list[j]
-            }
-        }
-        if (count < 4) putRandomValues(1)
-        checkGameStatus()
-    }
-    fun moveRight(){
-        var count = 0
-        for(i in 0 until size){
-//            val list = clearZeros((gameField[i]))
-            val n: IntProgression = clearZeroes(gameField[i]).size - 1 downTo 1
-            val list = merge(clearZeroes((gameField[i])), n)
-            if (list.size == size) count++
-            val sizeDifference = size - list.size //Поправка на то, что слева направо
-            for (j in gameField[i].indices) gameField[i][j] = 0
-            for (j in list.indices) gameField[i][j + sizeDifference] = list[j]
-        }
-        if (count < 4) putRandomValues(1)
-        checkGameStatus()
-    }
-    fun moveUp() {
-        var count = 0
-        for (i in 0 until size) {
-            val list: MutableList<Int> = mutableListOf()
-            for (j in 0 until size) {
-                list.add(gameField[j][i])
-            }
-            println(clearZeroes(list).isNotEmpty())
-            if(clearZeroes(list).isNotEmpty()) {
-                val n: IntProgression = 1 until clearZeroes(list).size
-                println(n)
-                val list2 = merge(clearZeroes(list), n)
-                if (list2.size == size) count++
-                for (j in 0 until size) gameField[j][i] = 0
-                for (j in list2.indices) gameField[j][i] = list2[j]
-            }
-        }
-        if (count < 4) putRandomValues(1)
-        checkGameStatus()
-    }
-    fun moveDown(){
-        var count = 0
-        for(i in 0 until size){
-            val list: MutableList<Int> = mutableListOf()
-            for(j in 0 until size){
-                list.add(gameField[j][i])
-            }
-            val n: IntProgression = clearZeroes(list).size -1 downTo 1
-            val list2 = merge(clearZeroes(list), n)
-            if (list2.size == size) count++
-            val sizeDifference = size - list2.size
-            for (j in 0 until size) gameField[j][i] = 0
-            for (j in list2.indices) gameField[j + sizeDifference][i] = list2[j]
-        }
-        if (count < 4) putRandomValues(1)
-        checkGameStatus()
+    fun move(direction: String) {
+        val isReversed = direction == "s" || direction == "d"
+        val isVertical = direction == "w" || direction == "s"
+        if (isVertical) gameField.transpose()
+        gameField.map { it.merge(isReversed, size) }
+        if (isVertical) gameField.transpose()
+        _isGameWon = gameField.any { row -> row.any { it == 2048 } }
+        _isGameOver = !checkAvailableMoves(gameField) || _isGameWon
+        if (emptySlots) putRandomValues(1)
     }
 }
