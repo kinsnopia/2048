@@ -1,22 +1,23 @@
 fun main() {
+
     val size = 4
-    val board = TestGrid(size)
+    val board = Grid(size)
 
     board.resetGameField()
-    println("Tvoy schyot: ${board.score} \n")
+    println("Score: ${board.score} \n")
 
     board.printGameField()
     while (!board.isGameOver) {
         when (readLine()!!) {
             "w" -> board.move("w")
-            "s" -> board.move("s")
             "a" -> board.move("a")
+            "s" -> board.move("s")
             "d" -> board.move("d")
         }
-        println("Tvoy schyot: ${board.score} \n")
+        println("Score: ${board.score} \n")
         board.printGameField()
     }
     if (board.isGameWon) println("krasava")
-    else println("proebal pohodu")
+    else println("No available moves")
 
 }
