@@ -33,7 +33,7 @@ class Grid(private val size: Int) {
         }
         else {
             //However, lack of empty cells doesn't necessarily mean no available moves.
-            //Therefore it must also check, whether there are any mergeable cells
+            //Therefore, it must also check, whether there are any mergeable cells
             emptySlots = false
             repeat(2) {
                 //This part is performed two times, one while gameField isn't transposed
